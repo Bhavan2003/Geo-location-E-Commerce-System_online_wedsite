@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Geo-location E-Commerce System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    .leaflet-container { height: 200px; width: 100%; border-radius: 10px; margin-top: 10px; }
+    body {
+
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #3e4c4a;
+      flex-direction: column;
+       background:  #fff9f4;
+      font-family: 'Segoe UI';
+    }
+    
+    /* Center the login box */
+    #loginForm {
+        width: 330px;
+        padding: 25px;
+        margin: auto;
+        margin-top: 5px;
+        background: #ffffff;
+        border-radius: 5px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        text-align: center;
+        animation: fadeIn 0.4s ease-in-out;
+    }
+
+    /* Login title */
+    #loginForm h2 {
+        margin-bottom: 20px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    /* Inputs */
+    #loginForm input {
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 15px;
+    }
+
+    /* Button styling */
+    #loginForm button {
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 8px;
+    }
+
+    /* Error Message */
+    #loginForm #errorMsg {
+        font-size: 14px;
+    }
+
+    /* Register link */
+    #loginForm p span {
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    /* Animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    
+
+      /* HOME PAGE BANNER */
+    .home-banner {
+      width: 100%;
+      height: 400px;
+      margin-bottom: 20px;
+      background-image: url('https://images.pexels.com/photos/4393669/pexels-photo-4393669.jpeg');
+      background-size: cover;
+      background-position: center;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      animation: fadeIn 1.2s ease-in-out;
+    }
+
+    .home-overlay {
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.45); 
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .home-content {
+      text-align: center;
+      color: #fff;
+      padding: 20px;
+      max-width: 700px;
+      animation: slideUp 1.3s ease;
+    }
+
+    .home-content h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+
+    .home-content p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+
+
+    .title {
+      background: #4db6ac;
+      width: 100%;
+      text-align: center;
+      padding: 20px;
+      font-weight: 700;
+      font-size: 2.2rem;
+      color: #fff;
+      margin-bottom: 20px;
+      letter-spacing: 1.2px;
+      box-shadow: 0 4px 6px rgba(77,182,172,0.4);
+    }
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 30px;
+      box-shadow: 0 6px 20px rgba(77,182,172,0.15);
+      width: 100%;
+      max-width: 900px;
+      transition: all .3s;
+    }
+    .hidden { display: none; }
+    #navButtons {
+      background: #f88379;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(248,131,121,.4);
+    }
+    #navButtons button {
+      color: #fff;
+      border: none;
+      background: transparent;
+      font-weight: 600;
+      font-size: 1rem;
+      margin: 0 8px;
+    }
+    .logout-link { color: #fff; text-decoration: underline; cursor: pointer; font-weight: 700; margin-left: 12px; }
+    .btn-primary { background: #4db6ac; border-color: #4db6ac; font-weight: 600; }
+    img.product-img { width: 100px; height: 100px; object-fit: cover; border-radius: 10px; transition: transform .4s ease; cursor: pointer; }
+    .product-img:hover { transform: scale(2.2); }
+  </style>
+</head>
+<body>
+  <div class="title">Geo-location E-Commerce System</div>
+
+  <div class="card" id="mainCard">
+    <div id="navButtons" class="hidden mb-3 text-center">
+      <button onclick="showHome()">Home</button>
+      <button onclick="showProducts()">Products</button>
+      <button onclick="showUsers()">Users</button>
+      <button onclick="showCart()">
+        Cart (<span id="cartCount">0</span>)
+      </button>
+      <button onclick="showOrders()">Orders</button>
+      <span class="logout-link" onclick="logout()">Logout</span>
+    </div>
+      
+    <!-- HOME PAGE SECTION -->
+        <!-- HOME PAGE SECTION -->
+    <div id="homeBanner" class="home-banner hidden">
+      <div class="home-overlay">
+        <div class="home-content">
+          <h1>Shop Smart with Geo-Location E-Commerce</h1>
+          <p>
+            Experience a modern way of shopping where convenience meets technology.
+            Explore products, locate nearby stores instantly, and enjoy a seamless
+            shopping experience powered by real-time geo-location intelligence.
+          </p>
+          <button class="btn btn-light px-4" onclick="showProducts()">Start Shopping</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Login -->
+    <div id="loginForm">
+      <h2>Login</h2>
+      <input id="username" class="form-control mb-3" placeholder="Username" />
+      <input type="password" id="password" class="form-control mb-3" placeholder="Password" />
+      <button class="btn btn-primary w-100 mb-3" onclick="login()">Login</button>
+      <div id="errorMsg" class="text-danger mb-3 hidden">Invalid credentials!</div>
+      <p class="text-center">No account? <span class="text-primary" style="cursor:pointer" onclick="showRegisterForm()">Register</span></p>
+    </div>
+
+    <!-- Register -->
+    <div id="registerForm" class="hidden">
+      <h2>Register</h2>
+      <div id="registerSuccess" class="text-success hidden">Registration successful! Please login.</div>
+      <input id="newUsername" class="form-control mb-3" placeholder="New Username" />
+      <input type="password" id="newPassword" class="form-control mb-3" placeholder="New Password" />
+      <input type="password" id="confirmPassword" class="form-control mb-3" placeholder="Confirm Password" />
+      <button class="btn btn-success w-100 mb-3" onclick="register()">Register</button>
+      <p class="text-center">Already have an account? <span class="text-primary" style="cursor:pointer" onclick="showLoginForm()">Login</span></p>
+    </div>
+
+    <!-- Admin -->
+    <div id="adminDashboard" class="hidden">
+      <div id="homeSection" class="hidden">
+        <h3>Welcome, <span id="adminWelcome"></span></h3>
+      </div>
+
+      <!-- single userManagement block (only once) -->
+      <div id="userManagement" class="hidden">
+        <h3>User Management</h3>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Username</th><th>Role</th><th>Status</th><th>Login Time</th><th>Logout Time</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- User -->
+    <div id="userDashboard" class="hidden">
+      <h2>User Dashboard</h2>
+      <p>Welcome, <span id="userWelcome"></span></p>
+    </div>
+
+    <!-- Products -->
+    <div id="productSection" class="hidden">
+      <h3>Products</h3>
+      <div class="row" id="productList"></div>
+    </div>
+
+    <!-- Cart -->
+    <div id="cartSection" class="hidden">
+      <h3>Your Cart</h3>
+      <div id="cartItems"></div>
+      <button class="btn btn-primary w-100 mt-3" onclick="goToPayment()">Proceed to Payment</button>
+    </div>
+
+    <!-- Payment -->
+    <div id="paymentSection" class="hidden">
+      <h3>Payment</h3>
+      <p>Total Amount: ₹<span id="totalAmount"></span></p>
+      <input id="cardNumber" class="form-control mb-3" placeholder="Card Number" />
+      <input id="cvv" class="form-control mb-3" placeholder="CVV" />
+      <button class="btn btn-success w-100" onclick="payNow()">Pay Now</button>
+    </div>
+
+    <!-- Order Success -->
+    <div id="orderSuccess" class="hidden text-center">
+      <h3 class="text-success">🎉 Order Successful!</h3>
+      <p>Your order has been placed successfully.</p>
+      <button class="btn btn-primary" onclick="showProducts()">Continue Shopping</button>
+    </div>
+
+    <!-- Orders -->
+    <div id="orderHistorySection" class="hidden">
+      <h3>My Orders</h3>
+      <div id="orderList"></div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+
+
+  <script>
+    // --- Data ---
+    let users = JSON.parse(localStorage.getItem('users')) || [{username:"admin",password:"admin123",role:"admin"}];
+    let currentUser = { username: '', role: '' };
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+    const save = (k,v)=>localStorage.setItem(k,JSON.stringify(v));
+
+    const products = [
+      { name: "Sugar", price: "₹40 per kg", img: "https://static.toiimg.com/thumb/msid-71164033,width-1280,height-720,resizemode-4/71164033.jpg" },
+      { name: "Wheat Flour (Atta)", price: "₹370 (10kg bag)", img: "https://www.bbassets.com/media/uploads/p/l/30006887_9-aashirvaad-atta-whole-wheat.jpg"},
+      { name: "Toor Dal", price: "₹55 (500g)", img: "https://swastikfoodproducts.com/wp-content/uploads/2022/03/toor-dal-1.png" },
+      { name: "Rice (Basmati)", price: "₹370 (5kg)", img: "https://img.clevup.in/416209/SKU-1105_0-1747808033001.jpg?width=600&format=webp"},
+      { name: "Refined Oil (Fortune)", price: "₹150 (1L)", img: "https://m.media-amazon.com/images/I/81FbVYZJYyL.jpg" },
+      { name: "Salt (Tata Salt)", price: "₹25 (1kg)", img: "https://m.media-amazon.com/images/I/614mm2hYHyL._UF894,1000_QL80_.jpg" },
+      { name: "Turmeric Powder (Haldi)", price: "₹25 (100g)", img: "https://ueirorganic.com/cdn/shop/files/turmericpowder_e2ff52f3-af0e-43de-9319-85c5dede5abc.jpg?v=1693824200" },
+      { name: "Red Chili Powder", price: "₹55 (100g)", img: "https://m.media-amazon.com/images/I/81yRpZrrjxL.jpg" },
+      { name: "Cumin Seeds (Jeera)", price: "₹35 (100g)", img: "https://ranibrand.com/cdn/shop/files/680901195236RaniCuminSeeds5lbsfront_1024x1024.jpg?v=1704703405" },
+      { name: "Garam Masala", price: "₹70 (100g)", img: "https://aachifoods.com/cdn/shop/files/garam-masala.webp?v=1755501686" },
+      { name: "Instant Noodles (Maggi)", price: "₹90 (560g)", img: "https://m.media-amazon.com/images/I/71Hiy0dmhlL.jpg" },
+      { name: "Biscuits (Parle-G)", price: "₹10", img: "https://www.glubery.com/public/uploads/1710846160Parle-G_Original_Glucose_Biscuits_50g_Pack_of_12-4.jpg" },
+      { name: "Potato Chips (Lays)", price: "₹10", img: "https://www.bbassets.com/media/uploads/p/xl/285485_10-lays-potato-chips-spanish-tomato-tango.jpg" },
+      { name: "Tomato Ketchup (Maggi)", price: "₹90 (500g)", img: "https://m.media-amazon.com/images/I/81f9c6440qL._UF350,350_QL80_.jpg" },
+      { name: "Tea (Tata Tea Gold)", price: "₹115 (250g)", img:"https://tse4.mm.bing.net/th/id/OIP.ONOtFo4Tg-gaStjhZhyanwHaHa?pid=Api&P=0&h=180"}];
+
+
+    const shopLocations = [
+      { name: 'Shop 1 - MORE SUPERMARKET', lat: 16.439216065354838, lon: 81.70319910475033 },
+      { name: 'Shop 2 - Victory Bazar', lat: 16.43819694924152, lon: 81.70325028949179 },
+      { name: 'Shop 3 - Reliance Smart Point', lat: 16.438572252380727, lon: 81.70337452845455 },
+      { name: 'Shop 4 - Sree Venkata Laxmi', lat: 16.435165680777704, lon: 81.69424552026072 },
+      { name: 'Shop 5 - My Store', lat: 16.43644279270911, lon: 81.69788381071339 },
+      { name: 'Shop 6 - Srinivasa Cool Drinks', lat: 16.437136657038828, lon: 81.69140447802957 }
+    ];
+
+    // quantity selector state for each product (default 1)
+    let productQuantities = products.map(()=>1);
+
+    // --- UI Functions ---
+    function hideAll(){
+      document.querySelectorAll('#mainCard > div').forEach(e=>e.classList.add('hidden'));
+      // always show nav after hiding sections
+      document.getElementById('navButtons').classList.remove('hidden');
+    }
+
+    function showLoginForm(){
+      hideAll();
+      document.getElementById('loginForm').classList.remove('hidden');
+      document.getElementById('navButtons').classList.add('hidden');
+    }
+
+    function showRegisterForm(){
+      hideAll();
+      document.getElementById('registerForm').classList.remove('hidden');
+      document.getElementById('navButtons').classList.add('hidden');
+    }
+
+    function showHome() {
+      hideAll();
+      document.getElementById('homeBanner').classList.remove('hidden');
+    }
+
+    function showProducts() {
+      hideAll();
+      const list = document.getElementById('productList');
+      list.innerHTML = '';
+
+      products.forEach((p, i) => {
+        const mapId = `map${i}`;
+        // product quantity controls are added here
+        list.innerHTML += `
+          <div class="col-12 col-md-4 mb-4">
+            <div class="card p-3">
+              <div class="row">
+                <div class="col-6 text-center">
+                  <img src="${p.img}" class="product-img mb-2"/><br>
+                  <b>${p.name}</b><br>${p.price}<br>
+
+                  <div class="d-flex justify-content-center align-items-center mt-2">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="changeDisplayQty(${i}, -1)">-</button>
+                    <span id="qty${i}" style="margin:0 10px; font-weight:700">${productQuantities[i]}</span>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="changeDisplayQty(${i}, 1)">+</button>
+                  </div>
+
+                  <button class='btn btn-sm btn-primary mt-2' onclick='addToCart(${i})'>Add to Cart</button>
+                </div>
+                <div class="col-6">
+                  <div id="${mapId}" class="leaflet-container"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        setTimeout(() => {
+          const el = document.getElementById(mapId);
+          if (!el) return;
+          const map = L.map(mapId, { attributionControl: false }).setView([16.4385, 81.701], 14);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+          }).addTo(map);
+          shopLocations.forEach(s => L.marker([s.lat, s.lon]).addTo(map).bindPopup(s.name));
+        }, 200);
+      });
+
+      document.getElementById('productSection').classList.remove('hidden');
+    }
+
+    function changeDisplayQty(index, delta) {
+      productQuantities[index] = Math.max(1, (productQuantities[index] || 1) + delta);
+      const el = document.getElementById(`qty${index}`);
+      if (el) el.textContent = productQuantities[index];
+    }
+
+    async function addToCart(i) {
+        const product = products[i];
+        const qtyToAdd = productQuantities[i] || 1;
+
+        let item = cart.find(p => p.name === product.name);
+        if (item) item.qty += qtyToAdd;
+        else cart.push({ ...product, qty: qtyToAdd });
+
+        productQuantities[i] = 1;
+        document.getElementById(`qty${i}`).textContent = '1';
+
+        save('cart', cart);
+        updateCartCount();
+
+        // --- Send to backend cart ---
+        const res = await fetch('/cart/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: localStorage.getItem('currentUser'),
+                product_id: i + 1 ,
+                 // match your DB product ID
+            })
+        });
+
+        const data = await res.json();
+        if (data.status !== 'success') console.error('Backend cart add failed');
+    }
+
+    function payNow() {
+        let username = localStorage.getItem("currentUser");
+        if (!username) return alert("Please login first!");
+
+        fetch("/order/checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: username })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                document.getElementById("paymentSection").classList.add("hidden");
+                document.getElementById("orderSuccess").classList.remove("hidden");
+
+                // clear frontend cart
+                cart = [];
+                save('cart', cart);
+                updateCartCount();
+            } else {
+                alert("Payment failed!");
+            }
+        })
+        .catch(err => console.error("Checkout error:", err));
+    }
+
+
+
+    function updateCartCount() {
+      // display total number of items (sum of qtys)
+      const totalItems = cart.reduce((sum, it) => sum + (it.qty || 0), 0);
+      document.getElementById('cartCount').textContent = totalItems;
+    }
+
+    function showCart() {
+      hideAll();
+      const c = document.getElementById('cartItems');
+      c.innerHTML = '';
+
+      if (cart.length === 0) {
+        c.innerHTML = '<p>No items in cart</p>';
+      } else {
+        cart.forEach((p, i) => {
+          c.innerHTML += `
+            <div class="d-flex justify-content-between mb-3">
+              <div>
+                <b>${p.name}</b> - ${p.price}
+              </div>
+
+              <div>
+                <button onclick="decreaseQty(${i})" 
+                    style="padding:4px 10px; border-radius:5px;">-</button>
+
+                <span style="font-weight:700; margin: 0 8px;">${p.qty}</span>
+
+                <button onclick="increaseQty(${i})" 
+                    style="padding:4px 10px; border-radius:5px;">+</button>
+
+                <button onclick="removeItem(${i})" 
+                    style="margin-left:10px; background:red; color:white; border:none; padding:3px 8px; border-radius:4px;">
+                  Remove
+                </button>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      document.getElementById('cartSection').classList.remove('hidden');
+    }
+
+    function increaseQty(i) {
+      cart[i].qty++;
+      save('cart', cart);
+      updateCartCount();
+      showCart();
+    }
+
+    function decreaseQty(i) {
+      if (cart[i].qty > 1) {
+        cart[i].qty--;
+      } else {
+        cart.splice(i, 1); // remove item if qty 0
+      }
+      save('cart', cart);
+      updateCartCount();
+      showCart();
+    }
+
+    function parsePrice(priceStr) {
+      const match = priceStr.match(/\d+(\.\d+)?/);
+      return match ? parseInt(match[0]) : 0;
+    }
+
+    function goToPayment(){
+      hideAll();
+      let total = cart.reduce((sum, item) => sum + (parsePrice(item.price)* item.qty), 0);
+      document.getElementById('totalAmount').innerText = total.toFixed(2);
+      document.getElementById('paymentSection').classList.remove('hidden');
+    }
+
+    function processPayment(){
+      if(!document.getElementById('cardNumber').value || !document.getElementById('cvv').value)
+        return alert('Enter card details');
+      if(!currentUser || !currentUser.username) return alert('Please login first');
+      orders.push({user:currentUser.username,items:cart,date:new Date().toLocaleString()});
+      save('orders',orders);
+      cart=[]; save('cart',cart);
+      hideAll(); document.getElementById('orderSuccess').classList.remove('hidden');
+    }
+
+    function removeItem(index){
+      cart.splice(index, 1);     // remove from array
+      save('cart', cart);        // update storage
+      updateCartCount();         // update Cart (number)
+      showCart();                // refresh cart page
+    }
+
+    function showOrders() {
+      // ensure user is set (in case of page reload)
+      if ((!currentUser || !currentUser.username) && localStorage.getItem('currentUser')) {
+        currentUser.username = localStorage.getItem('currentUser');
+      }
+
+      if (!currentUser || !currentUser.username) {
+        return alert('Please login to view your orders.');
+      }
+
+      // reuse existing hideAll() to hide other sections
+      hideAll();
+
+      fetch(`/orders/${encodeURIComponent(currentUser.username)}`)
+        .then(res => {
+          if (!res.ok) throw new Error('Server returned ' + res.status);
+          return res.json();
+        })
+        .then(data => {
+          const orderList = document.getElementById("orderList");
+          orderList.innerHTML = "";
+
+          if (!data || data.length === 0) {
+            orderList.innerHTML = "<p>No orders found.</p>";
+            document.getElementById("orderHistorySection").classList.remove("hidden");
+            return;
+          }
+
+          data.forEach(order => {
+            let orderHTML = `
+              <div class="card p-3 mb-3 shadow-sm">
+                <h5>Order ID: ${order.order_id}</h5>
+                <p>User: ${order.username}</p>
+                <p>Date: ${order.date}</p>
+                <p>Total Amount: ₹${order.total_amount}</p>
+                <h6>Items:</h6>
+                <ul>
+            `;
+
+            order.items.forEach(item => {
+              orderHTML += `
+                <li>${item.name} — ₹${item.price} × ${item.qty}</li>
+              `;
+            });
+
+            orderHTML += `
+                </ul>
+              </div>
+            `;
+
+            orderList.innerHTML += orderHTML;
+          });
+
+          document.getElementById("orderHistorySection").classList.remove("hidden");
+        })
+        .catch(err => {
+          console.error("Error loading orders:", err);
+          alert('Only admin can view users!');
+        });
+    }
+
+
+
+    async function showUsers() {
+      if (!currentUser || currentUser.role !== 'admin') {
+        alert('Only admin can view users!');
+        return;
+      }
+
+      hideAll();
+
+      try {
+        const res = await fetch('/admin/users');
+        if(!res.ok) throw new Error(`HTTP ${res.status}`);
+        const users = await res.json();
+
+        let html = '';
+        users.forEach(u => {
+          html += `<tr>
+            <td>${u.username}</td>
+            <td>
+              <select class="form-select form-select-sm"
+                      onchange="updateRole('${u.username}', this.value)">
+                  <option value="user" ${u.role === 'user' ? 'selected' : ''}>User</option>
+                  <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+              </select>
+            </td>
+            <td>${u.status || '-'}</td>
+            <td>${u.login_time || '-'}</td>
+            <td>${u.logout_time || '-'}</td>
+            <td>${u.username !== 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.username}')">Delete</button>` : '-'}</td>
+          </tr>`;
+        });
+
+        document.getElementById('userTableBody').innerHTML = html;
+        document.getElementById('userManagement').classList.remove('hidden');
+        document.getElementById('adminDashboard').classList.remove('hidden');
+      } catch (err) {
+        console.error('Error loading users:', err);
+        alert('Unable to load users. Check server console.');
+      }
+    }
+
+    async function deleteUser(username) {
+      if (!confirm(`Are you sure you want to delete ${username}?`)) return;
+      const res = await fetch('/admin/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert('User deleted successfully!');
+        showUsers();
+      } else {
+        alert(data.message || 'Error deleting user!');
+      }
+    }
+
+    async function updateRole(username, newRole) {
+      const res = await fetch('/admin/update-role', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, role: newRole })
+      });
+
+      const data = await res.json();
+
+      if (data.status === 'success') {
+          alert(`Role updated to ${newRole} successfully!`);
+          showUsers();  // refresh user list
+      } else {
+          alert('Failed to update role!');
+      }
+  }
+
+    // --- Auth ---
+    async function login() {
+      const u = document.getElementById('username').value.trim();
+      const p = document.getElementById('password').value;
+
+      if(!u || !p) return alert('Enter username and password');
+
+      const res = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, password: p })
+      });
+
+      if(!res.ok) {
+        alert('Login request failed');
+        return;
+      }
+
+      const data = await res.json();
+      console.log("LOGIN RESPONSE:", data);
+
+      if (data.status === 'success') {
+        currentUser = {
+          username: u,
+          role: data.role || (u === 'admin' ? 'admin' : 'user')
+        };
+
+        localStorage.setItem("currentUser", u);
+
+        document.getElementById('navButtons').classList.remove('hidden');
+        document.getElementById('errorMsg').classList.add('hidden');
+
+        if (currentUser.role === 'admin') {
+          document.getElementById('adminWelcome').innerText = currentUser.username;
+        } else {
+          document.getElementById('userWelcome').innerText = currentUser.username;
+        }
+
+        updateCartCount();
+        showHome();
+      } else {
+        document.getElementById('errorMsg').classList.remove('hidden');
+      }
+    }
+
+    async function register() {
+      const u = document.getElementById('newUsername').value.trim();
+      const p = document.getElementById('newPassword').value;
+      const c = document.getElementById('confirmPassword').value;
+
+      if (!u || !p) return alert('Fill all fields');
+      if (p !== c) return alert('Passwords do not match');
+
+      const res = await fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, password: p })
+      });
+      const data = await res.json();
+
+      if (data.status === 'success') {
+        document.getElementById('registerSuccess').classList.remove('hidden');
+        setTimeout(showLoginForm, 1500);
+      } else {
+        alert(data.message || 'Registration failed');
+      }
+    }
+
+    async function logout() {
+      if (currentUser && currentUser.username) {
+        await fetch('/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: currentUser.username })
+        });
+      }
+      currentUser = { username: '', role: '' };
+      showLoginForm();
+    }
+
+    // initial state
+    showLoginForm();
+  </script>
+
+</body>
+</html>
